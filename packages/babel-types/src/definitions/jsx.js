@@ -20,6 +20,10 @@ defineType("JSXClosingElement", {
   fields: {
     name: {
       validate: assertNodeType("JSXIdentifier", "JSXMemberExpression")
+    },
+    isFragment: {
+      default: false,
+      validate: assertValueType("boolean")
     }
   }
 });
@@ -41,6 +45,10 @@ defineType("JSXElement", {
         assertValueType("array"),
         assertEach(assertNodeType("JSXText", "JSXExpressionContainer", "JSXElement"))
       )
+    },
+    isFragment: {
+      default: false,
+      validate: assertValueType("boolean")
     }
   }
 });
@@ -104,6 +112,10 @@ defineType("JSXOpeningElement", {
       validate: assertNodeType("JSXIdentifier", "JSXMemberExpression")
     },
     selfClosing: {
+      default: false,
+      validate: assertValueType("boolean")
+    },
+    isFragment: {
       default: false,
       validate: assertValueType("boolean")
     },
