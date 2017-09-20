@@ -39,6 +39,8 @@ export default function (opts) {
         return t.thisExpression();
       } else if (esutils.keyword.isIdentifierNameES6(node.name)) {
         node.type = "Identifier";
+      } else if (node.name === "" && parent.isFragment) {
+        return t.stringLiteral("React.Fragment");
       } else {
         return t.stringLiteral(node.name);
       }
@@ -78,7 +80,6 @@ export default function (opts) {
 
   function buildElementCall(path, file) {
     path.parent.children = t.react.buildChildren(path.parent);
-
     const tagExpr = convertJSXIdentifier(path.node.name, path.node);
     const args = [];
 
