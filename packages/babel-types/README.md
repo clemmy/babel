@@ -1031,6 +1031,7 @@ See also `t.isJSXClosingElement(node, opts)` and `t.assertJSXClosingElement(node
 Aliases: `JSX`, `Immutable`
 
  - `name`: `JSXIdentifier | JSXMemberExpression` (required)
+ - `isFragment`: `boolean` (default: `false`)
 
 ---
 
@@ -1047,6 +1048,7 @@ Aliases: `JSX`, `Immutable`, `Expression`
  - `closingElement`: `JSXClosingElement` (default: `null`)
  - `children`: `Array<JSXText | JSXExpressionContainer | JSXSpreadChild | JSXElement>` (required)
  - `selfClosing` (required)
+ - `isFragment`: `boolean` (default: `false`)
 
 ---
 
@@ -1128,6 +1130,7 @@ Aliases: `JSX`, `Immutable`
  - `name`: `JSXIdentifier | JSXMemberExpression` (required)
  - `attributes`: `Array<JSXAttribute | JSXSpreadAttribute>` (required)
  - `selfClosing`: `boolean` (default: `false`)
+ - `isFragment`: `boolean` (default: `false`)
 
 ---
 
