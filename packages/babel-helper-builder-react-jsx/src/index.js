@@ -19,6 +19,14 @@ export default function (opts) {
 
   visitor.JSXElement = {
     exit(path, file) {
+      if (path.node.isFragment) {
+        const openingIdentifier = path.get("openingElement.name");
+        const closingIdentifier = path.get("closingElement.name");
+
+        openingIdentifier.replaceWith(file.get("jsxFragIdentifier"));
+        closingIdentifier.replaceWith(file.get("jsxFragIdentifier"));
+      }
+
       const callExpr = buildElementCall(path.get("openingElement"), file);
 
       callExpr.arguments = callExpr.arguments.concat(path.node.children);
@@ -39,8 +47,6 @@ export default function (opts) {
         return t.thisExpression();
       } else if (esutils.keyword.isIdentifierNameES6(node.name)) {
         node.type = "Identifier";
-      } else if (node.name === "" && parent.isFragment) {
-        return t.stringLiteral("React.Fragment");
       } else {
         return t.stringLiteral(node.name);
       }
@@ -113,7 +119,7 @@ export default function (opts) {
       opts.post(state, file);
     }
 
-    return state.call || t.callExpression(state.callee, args);
+    return state.call || t.callExpression(state.jsxIdentifier, args);
   }
 
   /**
