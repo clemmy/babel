@@ -80,9 +80,8 @@ With options:
 {
   "plugins": [
     ["transform-react-jsx", {
-      "pragmaJsx": "dom", // default is React.createElement
-      "pragmaJsxFrag": "DomFrag", // default is React.Fragment
-      "pragma": "dom" // default is React.createElement (will be deprecated soon, please use the "pragmaJsx" flag instead)
+      "pragma": "dom", // default is React.createElement
+      "pragmaFrag": "DomFrag", // default is React.Fragment
     }]
   ]
 }
@@ -104,25 +103,19 @@ require("babel-core").transform("code", {
 
 ## Options
 
-### `pragmaJsx`
-
-`string`, defaults to `React.createElement`.
-
-Replace the function used when compiling JSX expressions.
-
-### `pragmaJsxFrag`
-
-`string`, defaults to `React.Fragment`.
-
-Replace the component used when compiling JSX fragments.
-
-### `pragma` (deprecating in favor of `pragmaJsx`)
+### `pragma`
 
 `string`, defaults to `React.createElement`.
 
 Replace the function used when compiling JSX expressions.
 
 Note that the `@jsx React.DOM` pragma has been deprecated as of React v0.12
+
+### `pragmaFrag`
+
+`string`, defaults to `React.Fragment`.
+
+Replace the component used when compiling JSX fragments.
 
 ### `useBuiltIns`
 

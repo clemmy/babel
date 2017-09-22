@@ -35,26 +35,26 @@ export default function ({ types: t }) {
 
   visitor.Program = function (path, state) {
     const { file } = state;
-    let pragmaJsx = state.opts.pragma || state.opts.pragmaJsx || "React.createElement";
-    let pragmaJsxFrag = state.opts.pragmaJsxFrag || "React.Fragment";
+    let pragma = state.opts.pragma || "React.createElement";
+    let pragmaFrag = state.opts.pragmaFrag || "React.Fragment";
 
     for (const comment of (file.ast.comments: Array<Object>)) {
       const jsxMatches = JSX_ANNOTATION_REGEX.exec(comment.value);
       if (jsxMatches) {
-        pragmaJsx = jsxMatches[1];
-        if (pragmaJsx === "React.DOM") {
+        pragma = jsxMatches[1];
+        if (pragma === "React.DOM") {
           throw file.buildCodeFrameError(comment,
             "The @jsx React.DOM pragma has been deprecated as of React 0.12");
         }
       }
       const jsxFragMatches = JSX_FRAG_ANNOTATION_REGEX.exec(comment.value);
       if (jsxFragMatches) {
-        pragmaJsxFrag = jsxFragMatches[1];
+        pragmaFrag = jsxFragMatches[1];
       }
     }
 
-    state.set("jsxIdentifier", parseIdentifier(pragmaJsx, t));
-    state.set("jsxFragIdentifier", parseJsxIdentifier(pragmaJsxFrag, t));
+    state.set("jsxIdentifier", parseIdentifier(pragma, t));
+    state.set("jsxFragIdentifier", parseJsxIdentifier(pragmaFrag, t));
   };
 
   return {
