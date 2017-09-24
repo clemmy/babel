@@ -25,6 +25,7 @@ export default function (opts) {
 
         openingIdentifier.replaceWith(file.get("jsxFragIdentifier"));
         closingIdentifier.replaceWith(file.get("jsxFragIdentifier"));
+        file.set("usedFragment", true);
       }
 
       const callExpr = buildElementCall(path.get("openingElement"), file);

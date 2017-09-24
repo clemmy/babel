@@ -33,28 +33,48 @@ export default function ({ types: t }) {
     }
   });
 
-  visitor.Program = function (path, state) {
-    const { file } = state;
-    let pragma = state.opts.pragma || "React.createElement";
-    let pragmaFrag = state.opts.pragmaFrag || "React.Fragment";
+  visitor.Program = {
+    enter(path, state) {
+      const { file } = state;
 
-    for (const comment of (file.ast.comments: Array<Object>)) {
-      const jsxMatches = JSX_ANNOTATION_REGEX.exec(comment.value);
-      if (jsxMatches) {
-        pragma = jsxMatches[1];
-        if (pragma === "React.DOM") {
-          throw file.buildCodeFrameError(comment,
-            "The @jsx React.DOM pragma has been deprecated as of React 0.12");
+      let pragma = state.opts.pragma || "React.createElement";
+      let pragmaFrag = state.opts.pragmaFrag || "React.Fragment";
+      let pragmaSet = !!state.opts.pragma;
+      let pragmaFragSet = !!state.opts.pragmaFrag;
+
+      for (const comment of (file.ast.comments: Array<Object>)) {
+        const jsxMatches = JSX_ANNOTATION_REGEX.exec(comment.value);
+        if (jsxMatches) {
+          pragma = jsxMatches[1];
+          pragmaSet = true;
+          if (pragma === "React.DOM") {
+            throw file.buildCodeFrameError(comment,
+              "The @jsx React.DOM pragma has been deprecated as of React 0.12");
+          }
+        }
+        const jsxFragMatches = JSX_FRAG_ANNOTATION_REGEX.exec(comment.value);
+        if (jsxFragMatches) {
+          pragmaFrag = jsxFragMatches[1];
+          pragmaFragSet = true;
         }
       }
-      const jsxFragMatches = JSX_FRAG_ANNOTATION_REGEX.exec(comment.value);
-      if (jsxFragMatches) {
-        pragmaFrag = jsxFragMatches[1];
+
+      state.set("jsxIdentifier", parseIdentifier(pragma, t));
+      state.set("jsxFragIdentifier", parseJsxIdentifier(pragmaFrag, t));
+      state.set("usedFragment", false);
+      state.set("pragmaSet", pragmaSet);
+      state.set("pragmaFragSet", pragmaFragSet);
+    },
+    exit(path, state) {
+      const pragmaSet = state.get("pragmaSet");
+      const pragmaFragSet = state.get("pragmaFragSet");
+      const usedFragment = state.get("usedFragment");
+
+      if (pragmaSet && usedFragment && !pragmaFragSet) {
+        throw new Error("transform-react-jsx: pragma has been set but " +
+          "pragmafrag has not been set");
       }
     }
-
-    state.set("jsxIdentifier", parseIdentifier(pragma, t));
-    state.set("jsxFragIdentifier", parseJsxIdentifier(pragmaFrag, t));
   };
 
   return {
