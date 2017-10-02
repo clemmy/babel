@@ -29,7 +29,7 @@ export default function ({ types: t }) {
     },
 
     post(state, pass) {
-      state.jsxIdentifier = pass.get("jsxIdentifier");
+      state.jsxIdentifier = pass.get("jsxIdentifier")();
     }
   });
 
@@ -59,8 +59,8 @@ export default function ({ types: t }) {
         }
       }
 
-      state.set("jsxIdentifier", parseIdentifier(pragma, t));
-      state.set("jsxFragIdentifier", parseJsxIdentifier(pragmaFrag, t));
+      state.set("jsxIdentifier", () => parseIdentifier(pragma, t));
+      state.set("jsxFragIdentifier", () => parseJsxIdentifier(pragmaFrag, t));
       state.set("usedFragment", false);
       state.set("pragmaSet", pragmaSet);
       state.set("pragmaFragSet", pragmaFragSet);

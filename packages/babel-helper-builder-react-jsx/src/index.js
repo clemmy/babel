@@ -23,8 +23,8 @@ export default function (opts) {
         const openingIdentifier = path.get("openingElement.name");
         const closingIdentifier = path.get("closingElement.name");
 
-        openingIdentifier.replaceWith(file.get("jsxFragIdentifier"));
-        closingIdentifier.replaceWith(file.get("jsxFragIdentifier"));
+        openingIdentifier.replaceWith(file.get("jsxFragIdentifier")());
+        closingIdentifier.replaceWith(file.get("jsxFragIdentifier")());
         file.set("usedFragment", true);
       }
 
