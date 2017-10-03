@@ -22,7 +22,8 @@ export default function ({ types: t }) {
             state.args
           );
         }
-      }
+      },
+      compat: true
     })
   };
 }

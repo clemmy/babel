@@ -8,7 +8,10 @@ type ElementState = {
   call?: Object; // optional call property that can be set to override the call expression returned
   pre?: Function; // function called with (state: ElementState) before building attribs
   post?: Function; // function called with (state: ElementState) after building attribs
+  compat?: Boolean; // true if React in compat mode
 };
+
+const FEATURE_FLAG_JSX_FRAGMENT = true;
 
 export default function (opts) {
   const visitor = {};
@@ -19,7 +22,11 @@ export default function (opts) {
 
   visitor.JSXElement = {
     exit(path, file) {
-      if (path.node.isFragment) {
+      if (FEATURE_FLAG_JSX_FRAGMENT && path.node.isFragment) {
+        if (opts.compat) {
+          throw path.buildCodeFrameError("Fragment tags are only supported in React 16 and up.");
+        }
+
         const openingIdentifier = path.get("openingElement.name");
         const closingIdentifier = path.get("closingElement.name");
 
