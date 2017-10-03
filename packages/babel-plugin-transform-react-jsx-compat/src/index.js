@@ -8,7 +8,7 @@ export default function ({ types: t }) {
 
     visitor: helper({
       pre(state) {
-        state.callee = state.tagExpr;
+        state.jsxIdentifier = state.tagExpr;
       },
 
       post(state) {
@@ -22,7 +22,8 @@ export default function ({ types: t }) {
             state.args
           );
         }
-      }
+      },
+      compat: true
     })
   };
 }

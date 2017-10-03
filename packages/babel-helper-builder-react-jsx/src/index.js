@@ -8,7 +8,10 @@ type ElementState = {
   call?: Object; // optional call property that can be set to override the call expression returned
   pre?: Function; // function called with (state: ElementState) before building attribs
   post?: Function; // function called with (state: ElementState) after building attribs
+  compat?: Boolean; // true if React in compat mode
 };
+
+const FEATURE_FLAG_JSX_FRAGMENT = true;
 
 export default function (opts) {
   const visitor = {};
@@ -19,6 +22,19 @@ export default function (opts) {
 
   visitor.JSXElement = {
     exit(path, file) {
+      if (FEATURE_FLAG_JSX_FRAGMENT && path.node.isFragment) {
+        if (opts.compat) {
+          throw path.buildCodeFrameError("Fragment tags are only supported in React 16 and up.");
+        }
+
+        const openingIdentifier = path.get("openingElement.name");
+        const closingIdentifier = path.get("closingElement.name");
+
+        openingIdentifier.replaceWith(file.get("jsxFragIdentifier")());
+        closingIdentifier.replaceWith(file.get("jsxFragIdentifier")());
+        file.set("usedFragment", true);
+      }
+
       const callExpr = buildElementCall(path.get("openingElement"), file);
 
       callExpr.arguments = callExpr.arguments.concat(path.node.children);
@@ -78,7 +94,6 @@ export default function (opts) {
 
   function buildElementCall(path, file) {
     path.parent.children = t.react.buildChildren(path.parent);
-
     const tagExpr = convertJSXIdentifier(path.node.name, path.node);
     const args = [];
 
@@ -112,7 +127,7 @@ export default function (opts) {
       opts.post(state, file);
     }
 
-    return state.call || t.callExpression(state.callee, args);
+    return state.call || t.callExpression(state.jsxIdentifier, args);
   }
 
   /**
