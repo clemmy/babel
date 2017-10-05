@@ -1,8 +1,8 @@
 {
   "name": "babel-helper-builder-react-jsx",
   "version": "6.18.0",
-  "description": "Helper function to build react jsx",
-  "repository": "https://github.com/babel/babel/tree/master/packages/babel-helper-builder-react-jsx",
+  "description": "Helper function to build react jsx. Modified by clemmy.",
+  "repository": "https://github.com/clemmy/babel/tree/jsx-fragment-syntax-6.18.2/packages/babel-helper-builder-react-jsx",
   "license": "MIT",
   "main": "lib/index.js",
   "dependencies": {
