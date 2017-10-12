@@ -630,7 +630,7 @@ See also `t.isJSXAttribute(node, opts)` and `t.assertJSXAttribute(node, opts)`.
 Aliases: `JSX`, `Immutable`
 
  - `name`: `JSXIdentifier | JSXNamespacedName` (required)
- - `value`: `JSXElement | StringLiteral | JSXExpressionContainer` (default: `null`)
+ - `value`: `JSXElement | JSXFragment | StringLiteral | JSXExpressionContainer` (default: `null`)
 
 ### t.jSXClosingElement(name)
 
@@ -640,6 +640,13 @@ Aliases: `JSX`, `Immutable`
 
  - `name`: `JSXIdentifier | JSXMemberExpression` (required)
 
+### t.jSXClosingFragment()
+
+See also `t.isJSXClosingFragment(node, opts)` and `t.assertJSXClosingFragment(node, opts)`.
+
+Aliases: `JSX`, `Immutable`
+
+
 ### t.jSXElement(openingElement, closingElement, children, selfClosing)
 
 See also `t.isJSXElement(node, opts)` and `t.assertJSXElement(node, opts)`.
@@ -648,7 +655,7 @@ Aliases: `JSX`, `Immutable`, `Expression`
 
  - `openingElement`: `JSXOpeningElement` (required)
  - `closingElement`: `JSXClosingElement` (default: `null`)
- - `children`: `Array<JSXText | JSXExpressionContainer | JSXElement>` (required)
+ - `children`: `Array<JSXText | JSXExpressionContainer | JSXElement | JSXFragment>` (required)
  - `selfClosing` (required)
 
 ### t.jSXEmptyExpression()
@@ -665,6 +672,16 @@ See also `t.isJSXExpressionContainer(node, opts)` and `t.assertJSXExpressionCont
 Aliases: `JSX`, `Immutable`
 
  - `expression`: `Expression` (required)
+
+### t.jSXFragment(openingFragment, closingFragment, children)
+
+See also `t.isJSXFragment(node, opts)` and `t.assertJSXFragment(node, opts)`.
+
+Aliases: `JSX`, `Immutable`, `Expression`
+
+ - `openingFragment`: `JSXOpeningFragment` (required)
+ - `closingFragment`: `JSXClosingFragment` (required)
+ - `children`: `Array<JSXText | JSXExpressionContainer | JSXElement | JSXFragment>` (required)
 
 ### t.jSXIdentifier(name)
 
@@ -701,6 +718,13 @@ Aliases: `JSX`, `Immutable`
  - `name`: `JSXIdentifier | JSXMemberExpression` (required)
  - `attributes`: `Array<JSXAttribute | JSXSpreadAttribute>` (required)
  - `selfClosing`: `boolean` (default: `false`)
+
+### t.jSXOpeningFragment()
+
+See also `t.isJSXOpeningFragment(node, opts)` and `t.assertJSXOpeningFragment(node, opts)`.
+
+Aliases: `JSX`, `Immutable`
+
 
 ### t.jSXSpreadAttribute(argument)
 

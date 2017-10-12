@@ -9,7 +9,7 @@ defineType("JSXAttribute", {
     },
     value: {
       optional: true,
-      validate: assertNodeType("JSXElement", "StringLiteral", "JSXExpressionContainer")
+      validate: assertNodeType("JSXElement", "JSXFragment", "StringLiteral", "JSXExpressionContainer")
     }
   }
 });
@@ -39,7 +39,7 @@ defineType("JSXElement", {
     children: {
       validate: chain(
         assertValueType("array"),
-        assertEach(assertNodeType("JSXText", "JSXExpressionContainer", "JSXElement"))
+        assertEach(assertNodeType("JSXText", "JSXExpressionContainer", "JSXElement", "JSXFragment"))
       )
     }
   }
@@ -137,53 +137,29 @@ defineType("JSXText", {
 });
 
 defineType("JSXFragment", {
-  builder: ["openingElement", "closingElement", "children", "selfClosing"],
-  visitor: ["openingElement", "children", "closingElement"],
+  builder: ["openingFragment", "closingFragment", "children"],
+  visitor: ["openingFragment", "children", "closingFragment"],
   aliases: ["JSX", "Immutable", "Expression"],
   fields: {
-    openingElement: {
-      validate: assertNodeType("JSXOpeningElement")
+    openingFragment: {
+      validate: assertNodeType("JSXOpeningFragment")
     },
-    closingElement: {
-      optional: true,
-      validate: assertNodeType("JSXClosingElement")
+    closingFragment: {
+      validate: assertNodeType("JSXClosingFragment")
     },
     children: {
       validate: chain(
         assertValueType("array"),
-        assertEach(assertNodeType("JSXText", "JSXExpressionContainer", "JSXElement"))
+        assertEach(assertNodeType("JSXText", "JSXExpressionContainer", "JSXElement", "JSXFragment"))
       )
     }
   }
 });
 
 defineType("JSXOpeningFragment", {
-  builder: ["name", "attributes", "selfClosing"],
-  visitor: ["name", "attributes"],
-  aliases: ["JSX", "Immutable"],
-  fields: {
-    name: {
-      validate: assertNodeType("JSXIdentifier", "JSXMemberExpression")
-    },
-    selfClosing: {
-      default: false,
-      validate: assertValueType("boolean")
-    },
-    attributes: {
-      validate: chain(
-        assertValueType("array"),
-        assertEach(assertNodeType("JSXAttribute", "JSXSpreadAttribute"))
-      )
-    }
-  }
+  aliases: ["JSX", "Immutable"]
 });
 
 defineType("JSXClosingFragment", {
-  visitor: ["name"],
-  aliases: ["JSX", "Immutable"],
-  fields: {
-    name: {
-      validate: assertNodeType("JSXIdentifier", "JSXMemberExpression")
-    }
-  }
+  aliases: ["JSX", "Immutable"]
 });
