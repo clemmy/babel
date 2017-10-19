@@ -2,8 +2,8 @@ import esutils from "esutils";
 import * as t from "babel-types";
 
 type ElementState = {
-  tagExpr?: Object; // tag node
-  tagName: string; // raw string tag name
+  tagExpr: Object; // tag node
+  tagName?: string; // raw string tag name
   args: Array<Object>; // array of call arguments
   call?: Object; // optional call property that can be set to override the call expression returned
   pre?: Function; // function called with (state: ElementState) before building attribs
@@ -38,7 +38,7 @@ export default function (opts) {
         throw path.buildCodeFrameError("Fragment tags are only supported in React 16 and up.");
       }
 
-      let callExpr = buildFragmentCall(path.get("openingFragment"), file);
+      const callExpr = buildFragmentCall(path.get("openingFragment"), file);
 
       callExpr.arguments = callExpr.arguments.concat(path.node.children);
 
@@ -98,9 +98,9 @@ export default function (opts) {
   function buildFragmentCall(path, file) {
     path.parent.children = t.react.buildChildren(path.parent);
 
-    let args = [];
-    let tagName = 'React.Fragment';
-    let tagExpr = t.memberExpression(t.identifier('React'), t.identifier('Fragment'));
+    const args = [];
+    const tagName = null;
+    const tagExpr = file.get("jsxFragIdentifier")();
 
     let state: ElementState = {
       tagExpr: tagExpr,
@@ -108,9 +108,7 @@ export default function (opts) {
       args:    args
     };
 
-    if (opts.pre) {
-      opts.pre(state, file);
-    }
+    args.push(tagExpr);
 
     // no attributes are allowed with <> syntax
     args.push(t.nullLiteral());
@@ -119,14 +117,15 @@ export default function (opts) {
       opts.post(state, file);
     }
 
-    return state.call || t.callExpression(state.callee, args);
+    file.set("usedFragment", true);
+    return state.call || t.callExpression(state.jsxIdentifier, args);
   }
 
   function buildElementCall(path, file) {
     path.parent.children = t.react.buildChildren(path.parent);
 
-    let tagExpr = convertJSXIdentifier(path.node.name, path.node);
-    let args = [];
+    const tagExpr = convertJSXIdentifier(path.node.name, path.node);
+    const args = [];
 
     let tagName;
     if (t.isIdentifier(tagExpr)) {
@@ -158,7 +157,7 @@ export default function (opts) {
       opts.post(state, file);
     }
 
-    return state.call || t.callExpression(state.callee, args);
+    return state.call || t.callExpression(state.jsxIdentifier, args);
   }
 
   /**
