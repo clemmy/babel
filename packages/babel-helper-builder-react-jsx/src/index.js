@@ -2,12 +2,13 @@ import esutils from "esutils";
 import * as t from "babel-types";
 
 type ElementState = {
-  tagExpr: Object; // tag node
+  tagExpr?: Object; // tag node
   tagName: string; // raw string tag name
   args: Array<Object>; // array of call arguments
   call?: Object; // optional call property that can be set to override the call expression returned
   pre?: Function; // function called with (state: ElementState) before building attribs
   post?: Function; // function called with (state: ElementState) after building attribs
+  compat?: Boolean; // true if React is in compat mode
 };
 
 export default function (opts) {
@@ -20,6 +21,24 @@ export default function (opts) {
   visitor.JSXElement = {
     exit(path, file) {
       let callExpr = buildElementCall(path.get("openingElement"), file);
+
+      callExpr.arguments = callExpr.arguments.concat(path.node.children);
+
+      if (callExpr.arguments.length >= 3) {
+        callExpr._prettyCall = true;
+      }
+
+      path.replaceWith(t.inherits(callExpr, path.node));
+    }
+  };
+
+  visitor.JSXFragment = {
+    exit(path, file) {
+      if (opts.compat) {
+        throw path.buildCodeFrameError("Fragment tags are only supported in React 16 and up.");
+      }
+
+      let callExpr = buildFragmentCall(path.get("openingFragment"), file);
 
       callExpr.arguments = callExpr.arguments.concat(path.node.children);
 
@@ -74,6 +93,33 @@ export default function (opts) {
     }
 
     return t.inherits(t.objectProperty(node.name, value), node);
+  }
+
+  function buildFragmentCall(path, file) {
+    path.parent.children = t.react.buildChildren(path.parent);
+
+    let args = [];
+    let tagName = 'React.Fragment';
+    let tagExpr = t.memberExpression(t.identifier('React'), t.identifier('Fragment'));
+
+    let state: ElementState = {
+      tagExpr: tagExpr,
+      tagName: tagName,
+      args:    args
+    };
+
+    if (opts.pre) {
+      opts.pre(state, file);
+    }
+
+    // no attributes are allowed with <> syntax
+    args.push(t.nullLiteral());
+
+    if (opts.post) {
+      opts.post(state, file);
+    }
+
+    return state.call || t.callExpression(state.callee, args);
   }
 
   function buildElementCall(path, file) {
