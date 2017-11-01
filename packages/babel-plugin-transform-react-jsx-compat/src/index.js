@@ -6,7 +6,7 @@ export default function ({ types: t }) {
 
     visitor: require("babel-helper-builder-react-jsx")({
       pre(state) {
-        state.jsxIdentifier = state.tagExpr;
+        state.callee = state.tagExpr;
       },
 
       post(state) {
@@ -21,6 +21,7 @@ export default function ({ types: t }) {
           );
         }
       },
+
       compat: true
     })
   };

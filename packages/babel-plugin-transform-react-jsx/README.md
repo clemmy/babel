@@ -30,8 +30,9 @@ var profileFrag = React.createElement(React.Fragment, null,
 
 ```javascript
 /** @jsx dom */
+/** @jsxFrag DomFrag */
 
-var { dom } = require("deku");
+var { dom, DomFrag } = require("deku");
 
 var profileFrag = <>
   <img src="avatar.png" className="profile" />
@@ -45,8 +46,7 @@ var profileFrag = <>
 /** @jsx dom */
 /** @jsxFrag DomFrag */
 
-var dom = require("deku").dom;
-var DomFrag = require("deku").DomFrag; // fictional!
+var { dom, DomFrag } = require("deku");
 
 var profileFrag = dom(DomFrag, null,
   dom("img", { src: "avatar.png", className: "profile" }),

@@ -118,7 +118,7 @@ export default function (opts) {
     }
 
     file.set("usedFragment", true);
-    return state.call || t.callExpression(state.jsxIdentifier, args);
+    return state.call || t.callExpression(state.callee, args);
   }
 
   function buildElementCall(path, file) {
@@ -157,7 +157,7 @@ export default function (opts) {
       opts.post(state, file);
     }
 
-    return state.call || t.callExpression(state.jsxIdentifier, args);
+    return state.call || t.callExpression(state.callee, args);
   }
 
   /**

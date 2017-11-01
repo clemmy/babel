@@ -2,15 +2,15 @@
 
 const FEATURE_FLAG_JSX_FRAGMENT = true;
 
-function parseIdentifier(id: string, t) {
-  return id.split(".")
-    .map((name) => t.identifier(name))
-    .reduce((object, property) => t.memberExpression(object, property));
-}
-
 export default function ({ types: t }) {
   const JSX_ANNOTATION_REGEX = /\*?\s*@jsx\s+([^\s]+)/;
   const JSX_FRAG_ANNOTATION_REGEX = /\*?\s*@jsxFrag\s+([^\s]+)/;
+
+  const parseIdentifier = (id: string) => () => {
+    return id.split(".")
+      .map((name) => t.identifier(name))
+      .reduce((object, property) => t.memberExpression(object, property));
+  };
 
   let visitor = require("babel-helper-builder-react-jsx")({
     pre(state) {
@@ -24,7 +24,7 @@ export default function ({ types: t }) {
     },
 
     post(state, pass) {
-      state.jsxIdentifier = pass.get("jsxIdentifier")();
+      state.callee = pass.get("jsxIdentifier")();
     }
   });
 
@@ -56,8 +56,8 @@ export default function ({ types: t }) {
         }
 
         // the functions are passed so the same node isn't reused
-        state.set("jsxIdentifier", () => parseIdentifier(pragma, t));
-        state.set("jsxFragIdentifier", () => parseIdentifier(pragmaFrag, t));
+        state.set("jsxIdentifier", parseIdentifier(pragma));
+        state.set("jsxFragIdentifier", parseIdentifier(pragmaFrag));
 
         state.set("usedFragment", false);
         state.set("pragmaSet", pragmaSet);
