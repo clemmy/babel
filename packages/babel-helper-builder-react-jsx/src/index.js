@@ -100,7 +100,7 @@ export default function (opts) {
 
     const args = [];
     const tagName = null;
-    const tagExpr = file.get("jsxFragIdentifier")();
+    const tagExpr = file.get("jsxFragIdentifier");
 
     let state: ElementState = {
       tagExpr: tagExpr,

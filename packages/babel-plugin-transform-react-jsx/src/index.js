@@ -6,7 +6,7 @@ export default function ({ types: t }) {
   const JSX_ANNOTATION_REGEX = /\*?\s*@jsx\s+([^\s]+)/;
   const JSX_FRAG_ANNOTATION_REGEX = /\*?\s*@jsxFrag\s+([^\s]+)/;
 
-  const parseIdentifier = (id: string) => () => {
+  const parseIdentifier = (id: string) => {
     return id.split(".")
       .map((name) => t.identifier(name))
       .reduce((object, property) => t.memberExpression(object, property));
@@ -24,7 +24,7 @@ export default function ({ types: t }) {
     },
 
     post(state, pass) {
-      state.callee = pass.get("jsxIdentifier")();
+      state.callee = pass.get("jsxIdentifier");
     }
   });
 
@@ -91,12 +91,7 @@ export default function ({ types: t }) {
         }
       }
 
-      state.set(
-        "jsxIdentifier",
-        () => id.split(".").map((name) => t.identifier(name)).reduce(
-          (object, property) => t.memberExpression(object, property)
-        )
-      );
+      state.set("jsxIdentifier", parseIdentifier(id));
     };
   }
   return {
