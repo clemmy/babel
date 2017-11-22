@@ -139,7 +139,8 @@ export function StringLiteral(node: Object, parent: Object) {
   // ensure the output is ASCII-safe
   let val = jsesc(node.value, {
     quotes: t.isJSX(parent) ? "double" : this.format.quotes,
-    wrap: true
+    wrap: true,
+    json: true
   });
 
   return this.token(val);
