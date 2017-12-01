@@ -1,6 +1,7 @@
 /* eslint max-len: 0 */
 
 const FEATURE_FLAG_JSX_FRAGMENT = true;
+const JSX_IDENTIFIER_STACK_KEY = '$$jsx_generator_expression_yield_identifiers';
 
 export default function ({ types: t }) {
   const JSX_ANNOTATION_REGEX = /\*?\s*@jsx\s+([^\s]+)/;
@@ -62,6 +63,8 @@ export default function ({ types: t }) {
         state.set("usedFragment", false);
         state.set("pragmaSet", pragmaSet);
         state.set("pragmaFragSet", pragmaFragSet);
+
+        state.set(JSX_IDENTIFIER_STACK_KEY, []);
       },
       exit(path, state) {
         if (

@@ -9,7 +9,7 @@ defineType("JSXAttribute", {
     },
     value: {
       optional: true,
-      validate: assertNodeType("JSXElement", "JSXFragment", "StringLiteral", "JSXExpressionContainer")
+      validate: assertNodeType("JSXElement", "JSXFragment", "StringLiteral", "JSXExpressionContainer", "JSXGeneratorExpressionContainer")
     }
   }
 });
@@ -39,7 +39,7 @@ defineType("JSXElement", {
     children: {
       validate: chain(
         assertValueType("array"),
-        assertEach(assertNodeType("JSXText", "JSXExpressionContainer", "JSXElement", "JSXFragment"))
+        assertEach(assertNodeType("JSXText", "JSXExpressionContainer", "JSXElement", "JSXFragment", "JSXGeneratorExpressionContainer"))
       )
     }
   }
@@ -54,7 +54,30 @@ defineType("JSXExpressionContainer", {
   aliases: ["JSX", "Immutable"],
   fields: {
     expression: {
-      validate: assertNodeType("Expression")
+      validate: assertNodeType("DoExpression", "Expression")
+    }
+  }
+});
+
+defineType("JSXGeneratorExpressionContainer", {
+  visitor: ["expression"],
+  aliases: ["JSX", "Immutable"],
+  fields: {
+    expression: {
+      validate: assertNodeType("JSXGeneratorExpression")
+    }
+  }
+});
+
+defineType("JSXGeneratorExpression", {
+  visitor: ["body"],
+  aliases: ["JSX", "Expression"],
+  fields: {
+    body: {
+      validate: assertNodeType("BlockStatement")
+    },
+    expression: {
+      validate: assertValueType("boolean")
     }
   }
 });
@@ -150,7 +173,7 @@ defineType("JSXFragment", {
     children: {
       validate: chain(
         assertValueType("array"),
-        assertEach(assertNodeType("JSXText", "JSXExpressionContainer", "JSXElement", "JSXFragment"))
+        assertEach(assertNodeType("JSXText", "JSXExpressionContainer", "JSXElement", "JSXFragment", "JSXGeneratorExpressionContainer"))
       )
     }
   }

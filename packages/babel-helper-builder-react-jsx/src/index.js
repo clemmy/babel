@@ -11,6 +11,8 @@ type ElementState = {
   compat?: Boolean; // true if React is in compat mode
 };
 
+const JSX_IDENTIFIER_STACK_KEY = '$$jsx_generator_expression_yield_identifiers';
+
 export default function (opts) {
   let visitor = {};
 
@@ -47,6 +49,58 @@ export default function (opts) {
       }
 
       path.replaceWith(t.inherits(callExpr, path.node));
+    }
+  };
+
+  visitor.JSXGeneratorExpressionContainer = {
+    enter(path, file) {
+      console.log('GE enter');
+      const yieldsIdentifier = path.scope.generateUidIdentifier("yields");
+      file.get(JSX_IDENTIFIER_STACK_KEY).push(yieldsIdentifier);
+      const body = path.get('expression.body');
+      const emptyArrayDeclaration = t.variableDeclaration('var', [
+        t.variableDeclarator(
+          yieldsIdentifier,
+          t.arrayExpression()
+        )
+      ]);
+      body.unshiftContainer('body', emptyArrayDeclaration);
+    },
+    exit(path, file) {
+      const blockStatement = path.get('expression.body');
+      const wrapperFnc = t.functionExpression(null, [], blockStatement.node, false, false);
+      const iffe = t.callExpression(wrapperFnc, []);
+      path.replaceWith(iffe, path.node);
+
+      // return array or w/e at the end?
+      // shift a statement in
+
+      debugger;
+      console.log('GE exit');
+      file.get(JSX_IDENTIFIER_STACK_KEY).pop();
+    }
+  };
+
+  visitor.FunctionExpression = {
+    enter(path, file) {
+      console.log('NG enter');
+    }
+  }
+
+  visitor.YieldExpression = {
+    exit(path, file) {
+      console.log('yield');
+      const yieldsIdentifier = file.get(JSX_IDENTIFIER_STACK_KEY).pop();
+
+      if (yieldsIdentifier) {
+        const yieldArg = path.node.argument;
+        const pushArgIntoYields = t.expressionStatement(t.callExpression(t.memberExpression(yieldsIdentifier, t.identifier('push')), [yieldArg]));
+
+        path.replaceWith(pushArgIntoYields, path.node);
+      }
+
+      // race between JSXGeneratorExpressionContainer parent and Generator parent
+      // if JSXGeneratorExpressionContainer wins, then pop identifier and replace, else ignore
     }
   };
 
