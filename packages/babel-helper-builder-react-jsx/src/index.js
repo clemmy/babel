@@ -54,7 +54,6 @@ export default function (opts) {
 
   visitor.JSXGeneratorExpressionContainer = {
     enter(path, file) {
-      console.log('GE enter');
       const yieldsIdentifier = path.scope.generateUidIdentifier("yields");
       file.get(JSX_IDENTIFIER_STACK_KEY).push(yieldsIdentifier);
       const body = path.get('expression.body');
@@ -67,30 +66,22 @@ export default function (opts) {
       body.unshiftContainer('body', emptyArrayDeclaration);
     },
     exit(path, file) {
+      const yieldsIdentifier = file.get(JSX_IDENTIFIER_STACK_KEY).pop();
+      const returnArray = t.returnStatement(yieldsIdentifier);
+      const body = path.get('expression.body');
+      body.pushContainer('body', returnArray);
+
       const blockStatement = path.get('expression.body');
       const wrapperFnc = t.functionExpression(null, [], blockStatement.node, false, false);
       const iffe = t.callExpression(wrapperFnc, []);
       path.replaceWith(iffe, path.node);
-
-      // return array or w/e at the end?
-      // shift a statement in
-
-      debugger;
-      console.log('GE exit');
-      file.get(JSX_IDENTIFIER_STACK_KEY).pop();
     }
   };
 
-  visitor.FunctionExpression = {
-    enter(path, file) {
-      console.log('NG enter');
-    }
-  }
-
   visitor.YieldExpression = {
     exit(path, file) {
-      console.log('yield');
-      const yieldsIdentifier = file.get(JSX_IDENTIFIER_STACK_KEY).pop();
+      const identifierStack = file.get(JSX_IDENTIFIER_STACK_KEY);
+      const yieldsIdentifier = identifierStack.length ? identifierStack[identifierStack.length - 1] : null;
 
       if (yieldsIdentifier) {
         const yieldArg = path.node.argument;
