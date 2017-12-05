@@ -9,7 +9,7 @@ defineType("JSXAttribute", {
     },
     value: {
       optional: true,
-      validate: assertNodeType("JSXElement", "JSXFragment", "StringLiteral", "JSXExpressionContainer", "JSXGeneratorExpressionContainer")
+      validate: assertNodeType("JSXElement", "JSXFragment", "StringLiteral", "JSXExpressionContainer", "JSXGeneratorExpressionContainer", "Expression")
     }
   }
 });
