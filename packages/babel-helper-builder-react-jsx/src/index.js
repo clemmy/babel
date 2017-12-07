@@ -64,6 +64,8 @@ export default function (opts) {
         )
       ]);
       blockStatement.unshiftContainer("body", emptyArrayDeclaration);
+
+      path.traverse(JSXGeneratorExpressionVisitor);
     },
     exit(path, file) {
       const yieldsIdentifier = file.get(JSX_IDENTIFIER_STACK_KEY).pop();
@@ -108,10 +110,7 @@ export default function (opts) {
       // only care about unlabelled breaks
       if (path.node.label === null) {
         // first container where unlabelled breaks are allowed
-        const firstHit = path.find(function(p) {
-          return UNLABELLED_BREAKABLE_CONTAINER_NODE_TYPES.includes(p.node.type);
-        });
-
+        const firstHit = path.find((p) => UNLABELLED_BREAKABLE_CONTAINER_NODE_TYPES.includes(p.node.type));
         if (firstHit && firstHit.isJSXGeneratorExpressionContainer()) {
           const identifierStack = file.get(JSX_IDENTIFIER_STACK_KEY);
           if (!identifierStack.length) {
@@ -121,6 +120,28 @@ export default function (opts) {
           const returnArray = t.returnStatement(yieldsIdentifier);
           path.replaceWith(returnArray, path.node);
           // TODO: remove dead code after the return
+        }
+      }
+    }
+  };
+
+  const RETURNABLE_CONTAINER_NODE_TYPES = [
+    "JSXGeneratorExpressionContainer",
+    "FunctionExpression",
+    "FunctionDeclaration",
+    "ArrowFunctionExpression",
+    "ArrowFunctionExpression",
+    "Program",
+    "ClassMethod",
+    "ObjectMethod"
+  ];
+
+  const JSXGeneratorExpressionVisitor = {
+    ReturnStatement: {
+      exit: function exit(path) {
+        const firstHit = path.find((p) => RETURNABLE_CONTAINER_NODE_TYPES.includes(p.node.type));
+        if (firstHit && firstHit.isJSXGeneratorExpressionContainer()) {
+          throw path.buildCodeFrameError("Return statements are not supported inside generator expressions.");
         }
       }
     }
