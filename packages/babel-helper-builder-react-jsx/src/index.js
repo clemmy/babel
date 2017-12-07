@@ -94,6 +94,38 @@ export default function (opts) {
     }
   };
 
+  const UNLABELLED_BREAKABLE_CONTAINER_NODE_TYPES = [
+    "JSXGeneratorExpressionContainer",
+    "ForStatement",
+    "DoWhileStatement",
+    "WhileStatement",
+    "ForInStatement",
+    "ForOfStatement"
+  ];
+
+  visitor.BreakStatement = {
+    exit: function exit(path, file) {
+      // only care about unlabelled breaks
+      if (path.node.label === null) {
+        // first container where unlabelled breaks are allowed
+        const firstHit = path.find(function(p) {
+          return UNLABELLED_BREAKABLE_CONTAINER_NODE_TYPES.includes(p.node.type);
+        });
+
+        if (firstHit && firstHit.isJSXGeneratorExpressionContainer()) {
+          const identifierStack = file.get(JSX_IDENTIFIER_STACK_KEY);
+          if (!identifierStack.length) {
+            return;
+          }
+          const yieldsIdentifier = identifierStack[identifierStack.length - 1];
+          const returnArray = t.returnStatement(yieldsIdentifier);
+          path.replaceWith(returnArray, path.node);
+          // TODO: remove dead code after the return
+        }
+      }
+    }
+  };
+
   return visitor;
 
   function convertJSXIdentifier(node, parent) {
