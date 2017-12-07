@@ -64,20 +64,7 @@ defineType("JSXGeneratorExpressionContainer", {
   aliases: ["JSX", "Immutable"],
   fields: {
     expression: {
-      validate: assertNodeType("JSXGeneratorExpression")
-    }
-  }
-});
-
-defineType("JSXGeneratorExpression", {
-  visitor: ["body"],
-  aliases: ["JSX", "Expression"],
-  fields: {
-    body: {
       validate: assertNodeType("BlockStatement")
-    },
-    expression: {
-      validate: assertValueType("boolean")
     }
   }
 });

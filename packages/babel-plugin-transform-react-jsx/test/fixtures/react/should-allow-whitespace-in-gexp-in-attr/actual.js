@@ -1,0 +1,1 @@
+<div attr=* /* comment */ { yield foo; } />;
