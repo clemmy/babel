@@ -1,0 +1,3 @@
+{
+  "throws": "Return statements are not supported inside generator expressions."
+}
