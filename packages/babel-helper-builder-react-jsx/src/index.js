@@ -11,8 +11,6 @@ type ElementState = {
   compat?: Boolean; // true if React is in compat mode
 };
 
-const JSX_IDENTIFIER_STACK_KEY = "$$jsx_generator_expression_yield_identifiers";
-
 export default function (opts) {
   let visitor = {};
 
@@ -53,46 +51,25 @@ export default function (opts) {
   };
 
   visitor.JSXGeneratorExpressionContainer = {
-    enter(path, file) {
+    exit(path) {
       const yieldsIdentifier = path.scope.generateUidIdentifier("yields");
-      file.get(JSX_IDENTIFIER_STACK_KEY).push(yieldsIdentifier);
-      const blockStatement = path.get("expression");
+      const gexpContents = path.get("expression");
       const emptyArrayDeclaration = t.variableDeclaration("var", [
         t.variableDeclarator(
           yieldsIdentifier,
           t.arrayExpression()
         )
       ]);
-      blockStatement.unshiftContainer("body", emptyArrayDeclaration);
+      gexpContents.unshiftContainer("body", emptyArrayDeclaration);
 
-      path.traverse(JSXGeneratorExpressionVisitor);
-    },
-    exit(path, file) {
-      const yieldsIdentifier = file.get(JSX_IDENTIFIER_STACK_KEY).pop();
-      const returnArray = t.returnStatement(yieldsIdentifier);
-      const blockStatement = path.get("expression");
-      blockStatement.pushContainer("body", returnArray);
+      path.traverse(JSXGeneratorExpressionVisitor, { yieldsIdentifier });
 
-      const wrapperFnc = t.functionExpression(null, [], blockStatement.node, false, false);
+      const returnYieldsStatement = t.returnStatement(yieldsIdentifier);
+      gexpContents.pushContainer("body", returnYieldsStatement);
+
+      const wrapperFnc = t.functionExpression(null, [], gexpContents.node, false, false);
       const iffe = t.callExpression(wrapperFnc, []);
       path.replaceWith(iffe, path.node);
-    }
-  };
-
-  visitor.YieldExpression = {
-    exit(path, file) {
-      const identifierStack = file.get(JSX_IDENTIFIER_STACK_KEY);
-      const yieldsIdentifier = identifierStack.length ? identifierStack[identifierStack.length - 1] : null;
-
-      // if YieldExpression is in generator context, then leave it alone
-      const earliestContainerThatAllowsYield = path.find((p) => p.isJSXGeneratorExpressionContainer() || (p.isFunctionDeclaration() && p.node.generator));
-
-      if (yieldsIdentifier && earliestContainerThatAllowsYield.isJSXGeneratorExpressionContainer()) {
-        const yieldArg = path.node.argument;
-        const pushArgIntoYields = t.expressionStatement(t.callExpression(t.memberExpression(yieldsIdentifier, t.identifier("push")), [yieldArg]));
-
-        path.replaceWith(pushArgIntoYields, path.node);
-      }
     }
   };
 
@@ -104,26 +81,6 @@ export default function (opts) {
     "ForInStatement",
     "ForOfStatement"
   ];
-
-  visitor.BreakStatement = {
-    exit: function exit(path, file) {
-      // only care about unlabelled breaks
-      if (path.node.label === null) {
-        // first container where unlabelled breaks are allowed
-        const firstHit = path.find((p) => UNLABELLED_BREAKABLE_CONTAINER_NODE_TYPES.includes(p.node.type));
-        if (firstHit && firstHit.isJSXGeneratorExpressionContainer()) {
-          const identifierStack = file.get(JSX_IDENTIFIER_STACK_KEY);
-          if (!identifierStack.length) {
-            return;
-          }
-          const yieldsIdentifier = identifierStack[identifierStack.length - 1];
-          const returnArray = t.returnStatement(yieldsIdentifier);
-          path.replaceWith(returnArray, path.node);
-          // TODO: remove dead code after the return
-        }
-      }
-    }
-  };
 
   const RETURNABLE_CONTAINER_NODE_TYPES = [
     "JSXGeneratorExpressionContainer",
@@ -137,11 +94,49 @@ export default function (opts) {
   ];
 
   const JSXGeneratorExpressionVisitor = {
+    YieldExpression: {
+      exit(path) {
+        if (!this.yieldsIdentifier) {
+          return;
+        }
+
+        // if YieldExpression is in generator context, then leave it alone
+        const earliestContainerThatAllowsYield = path.find((p) => p.isJSXGeneratorExpressionContainer() || (p.isFunctionDeclaration() && p.node.generator));
+
+        if (earliestContainerThatAllowsYield.isJSXGeneratorExpressionContainer()) {
+          const yieldArg = path.node.argument;
+          const pushArgIntoYields = t.expressionStatement(t.callExpression(t.memberExpression(this.yieldsIdentifier, t.identifier("push")), [yieldArg]));
+
+          path.replaceWith(pushArgIntoYields, path.node);
+        }
+      }
+    },
     ReturnStatement: {
       exit: function exit(path) {
+        if (path.node.fromGExpTransform) {
+          return;
+        }
         const firstHit = path.find((p) => RETURNABLE_CONTAINER_NODE_TYPES.includes(p.node.type));
         if (firstHit && firstHit.isJSXGeneratorExpressionContainer()) {
           throw path.buildCodeFrameError("Return statements are not supported inside generator expressions.");
+        }
+      }
+    },
+    BreakStatement: {
+      exit: function exit(path) {
+        // only care about unlabelled breaks
+        if (path.node.label === null) {
+          // first container where unlabelled breaks are allowed
+          const firstHit = path.find((p) => UNLABELLED_BREAKABLE_CONTAINER_NODE_TYPES.includes(p.node.type));
+          if (firstHit && firstHit.isJSXGeneratorExpressionContainer()) {
+            if (!this.yieldsIdentifier) {
+              return;
+            }
+            const returnYieldsStatement = t.returnStatement(this.yieldsIdentifier);
+            returnYieldsStatement.fromGExpTransform = true;
+            path.replaceWith(returnYieldsStatement, path.node);
+            // TODO: remove dead code after the return
+          }
         }
       }
     }
