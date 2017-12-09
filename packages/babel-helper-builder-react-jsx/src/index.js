@@ -87,7 +87,15 @@ export default function (opts) {
     "FunctionExpression",
     "FunctionDeclaration",
     "ArrowFunctionExpression",
-    "ArrowFunctionExpression",
+    "Program",
+    "ClassMethod",
+    "ObjectMethod"
+  ];
+
+  // nodes that have their own scope
+  const CONTEXTUAL_CONTAINER_NODE_TYPES = [
+    "FunctionExpression",
+    "FunctionDeclaration",
     "Program",
     "ClassMethod",
     "ObjectMethod"
@@ -137,6 +145,26 @@ export default function (opts) {
             path.replaceWith(returnYieldsStatement, path.node);
             // TODO: remove dead code after the return
           }
+        }
+      }
+    },
+    ThisExpression: {
+      // bind this with outer scope's this
+      enter: function(path) {
+        const firstHit = path.find(function (p) {
+          return CONTEXTUAL_CONTAINER_NODE_TYPES.includes(p.node.type);
+        });
+        if (firstHit.isProgram()) {
+          path.replaceWith(t.Identifier("undefined"), path.node);
+        } else {
+          const blockStatement = firstHit.get("body");
+          if (!blockStatement.node.thisIdentifier) {
+            const thisIdentifier = blockStatement.scope.generateUidIdentifier("this");
+            blockStatement.node.thisIdentifier = thisIdentifier;
+            const assignThis = t.variableDeclaration("var", [t.variableDeclarator(blockStatement.node.thisIdentifier, t.thisExpression())]);
+            blockStatement.unshiftContainer("body", assignThis);
+          }
+          path.replaceWith(blockStatement.node.thisIdentifier, path.node);
         }
       }
     }
