@@ -54,6 +54,16 @@ defineType("DoExpression", {
   }
 });
 
+defineType("GeneratorExpression", {
+  visitor: ["body"],
+  aliases: ["Expression"],
+  fields: {
+    body: {
+      validate: assertNodeType("BlockStatement")
+    }
+  }
+});
+
 defineType("ExportDefaultSpecifier", {
   visitor: ["exported"],
   aliases: ["ModuleSpecifier"],
